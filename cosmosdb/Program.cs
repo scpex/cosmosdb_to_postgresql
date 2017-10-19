@@ -17,6 +17,10 @@ namespace cosmosdb
         private const string EndpointUri = "https://equityinsights.documents.azure.com:443/";
         private const string PrimaryKey = "txClUBsd1i2tQU5PXZXT6i642pJCVCyxDd32LOREJmZcHVUyT4DJFfBDLdnE2xcuzWeU6UozBNAAVce9F20jkw==";
         private DocumentClient client;
+        // windows os
+        string path = @"C:\code\cosmosdb_to_postgresql\insert.sh";
+        // linux os
+        // string path = @"/home/scpex/code/insert.sh";
 
         static void Main(string[] args)
         {
@@ -85,32 +89,60 @@ namespace cosmosdb
             //{
             //    Console.WriteLine(family);
             //}
-
+            
             // Now execute the same query via direct SQL
             IQueryable<dynamic> QueryInSql = this.client.CreateDocumentQuery<dynamic>(
                     UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
-                    "SELECT top 1 * FROM form4",
+                    "SELECT top 10 * FROM form4",
                     queryOptions);
 
             Console.WriteLine("Running direct SQL query...");
+            CreateFile(path);
+            int count = 0;
             foreach (var doc in QueryInSql)
             {
-                var script="insert into form4 values ('"+doc+"');";
-                //Console.WriteLine(inserting);
-                GenerateText(script);
+                var x = JsonConvert.SerializeObject(doc, Formatting.None);
+                if (x.Contains("'"))
+                {
+                    x=x.Replace("'", "''");
+                }
+                var script="insert into form4 values ('"+x+"');";
+                //Console.WriteLine(script);
+                GenerateText(script, path);
+                count++;
             }
-
-            Console.WriteLine("Press any key to continue ...");
-            Console.ReadKey();
         }
-        private static void GenerateText(String data)
+        private static void CreateFile(string path)
         {
-            string path = @"/home/scpex/code/insert.sh";
+            using (StreamWriter sw = File.CreateText(path))
+            {
+
+            }
+        }
+        private static void GenerateText(String data, string path)
+        {
+            // windows os
+            //string path = @"C:/code/cosmosdb_to_postgresql/insert.sh";
+            // linux os
+            //string path = @"/home/scpex/code/insert.sh";
             // This text is added only once to the file.
+            //using (StreamWriter sw = File.CreateText(path))
+            //{
+
+            //}
+
             if (!File.Exists(path))
             {
                 // Create a file to write to.
                 using (StreamWriter sw = File.CreateText(path))
+                {
+                    sw.WriteLine(data);
+                }
+            }
+            if (File.Exists(path))
+            {
+                // Create a file to write to.
+                using (StreamWriter sw = File.AppendText(path))
                 {
                     sw.WriteLine(data);
                 }
