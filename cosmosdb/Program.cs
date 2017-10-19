@@ -7,6 +7,7 @@ using System.Net;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Newtonsoft.Json;
+using System.IO;
 
 namespace cosmosdb
 {
@@ -88,17 +89,51 @@ namespace cosmosdb
             // Now execute the same query via direct SQL
             IQueryable<dynamic> QueryInSql = this.client.CreateDocumentQuery<dynamic>(
                     UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
-                    "SELECT count c.id FROM form4 c",
+                    "SELECT top 1 * FROM form4",
                     queryOptions);
 
             Console.WriteLine("Running direct SQL query...");
-            foreach (dynamic family in QueryInSql)
+            foreach (var doc in QueryInSql)
             {
-                Console.WriteLine("\tRead {0}", family);
+                var script="insert into form4 values ('"+doc+"');";
+                //Console.WriteLine(inserting);
+                GenerateText(script);
             }
 
             Console.WriteLine("Press any key to continue ...");
             Console.ReadKey();
+        }
+        private static void GenerateText(String data)
+        {
+            string path = @"/home/scpex/code/insert.sh";
+            // This text is added only once to the file.
+            if (!File.Exists(path))
+            {
+                // Create a file to write to.
+                using (StreamWriter sw = File.CreateText(path))
+                {
+                    sw.WriteLine(data);
+                }
+            }
+
+            // This text is always added, making the file longer over time
+            // if it is not deleted.
+            // using (StreamWriter sw = File.AppendText(path))
+            // {
+            //     sw.WriteLine("This");
+            //     sw.WriteLine("is Extra");
+            //     sw.WriteLine("Text");
+            // }
+
+            // Open the file to read from.
+            // using (StreamReader sr = File.OpenText(path))
+            // {
+            //     string s = "";
+            //     while ((s = sr.ReadLine()) != null)
+            //     {
+            //         Console.WriteLine(s);
+            //     }
+            // }
         }
     }
 }
