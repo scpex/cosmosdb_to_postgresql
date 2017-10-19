@@ -21,7 +21,7 @@ namespace cosmosdb
         static int count = 1;
         static string pagestr = Convert.ToString(page);
         // windows os
-        string path = @"C:\code\cosmosdb_to_postgresql\insert{0}.sh";
+        string path = @"C:\code\cosmosdb_to_postgresql\doc{0}.csv";
         // linux os
         //string path = @"/home/scpex/code/insert{0}.sh";
         static void Main(string[] args)
@@ -95,18 +95,6 @@ namespace cosmosdb
             //    }
             //}
 
-            //// Here we find the Andersen family via its LastName
-            //IQueryable<dynamic> familyQuery = this.client.CreateDocumentQuery<dynamic>(
-            //        UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
-            //        queryOptions).Take(2);
-
-            //// The query is executed synchronously here, but can also be executed asynchronously via the IDocumentQuery<T> interface
-            //Console.WriteLine("Running LINQ query...");
-            //foreach (dynamic family in familyQuery)
-            //{
-            //    Console.WriteLine(family);
-            //}
-
             // Now execute the same query via direct SQL
             IQueryable<dynamic> QueryInSql = this.client.CreateDocumentQuery<dynamic>(
                     UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
@@ -114,48 +102,55 @@ namespace cosmosdb
                     queryOptions);
 
             Console.WriteLine("Running direct SQL query...");
-
+            string json_result = "";
             foreach (var doc in QueryInSql)
             {
-                var x = JsonConvert.SerializeObject(doc, Formatting.None);
-                if (x.Contains("'"))
+                var json_record = JsonConvert.SerializeObject(doc, Formatting.None);
+                if (json_record.Contains("'"))
                 {
-                    x = x.Replace("'", "''");
+                    json_record = json_record.Replace("'", "''");
                 }
-                var script = "insert into form4 values ('" + x + "');";
-                //Console.WriteLine(script);
+                if (json_record.Contains("\\\""))
+                {
+                    json_record = json_record.Replace("\\\"", "\"");
+                }
+                if (json_record.Contains("etag\":\"\""))
+                {
+                    json_record = json_record.Replace("\"\"", "\"");
+                    if (json_record.Contains("\":\","))
+                    {
+                        json_record = json_record.Replace("\":\",", "\":\"\",");
+                        if (json_record.Contains(":\"}"))
+                        {
+                            json_record = json_record.Replace(":\"}", ":\"\"}");
+                            if (json_record.Contains("\"group\""))
+                            {
+                                json_record = json_record.Replace("\"group\"", "group");
+                            }
+                        }
+                    }
+                }
+                json_result += json_record+'\n';
+                //Console.WriteLine(json_record);
                 count++;
-                if (count == 1000)
+                if (count%100 == 0)
                 {
                     string newFilepath = string.Format(path, page);
-                    Console.WriteLine("Createfile .." + newFilepath);
-                    CreateFile(newFilepath);
-                    GenerateText(script, path);
-                    Console.WriteLine(count);
+                    GenerateText(json_result, newFilepath);
                     page++;
                 }
-
             }
         }
         private static void CreateFile(string path)
         {
             using (StreamWriter sw = File.CreateText(path))
             {
-
+                string newFilepath = string.Format(path, page);
+                Console.WriteLine("Createfile .." + newFilepath);
             }
         }
-        private static void GenerateText(String data, string path)
+        private static void GenerateText(string data, string path)
         {
-            // windows os
-            //string path = @"C:/code/cosmosdb_to_postgresql/insert.sh";
-            // linux os
-            //string path = @"/home/scpex/code/insert.sh";
-            // This text is added only once to the file.
-            //using (StreamWriter sw = File.CreateText(path))
-            //{
-
-            //}
-
             if (!File.Exists(path))
             {
                 // Create a file to write to.
