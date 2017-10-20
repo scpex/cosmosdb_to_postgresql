@@ -98,7 +98,7 @@ namespace cosmosdb
             // Now execute the same query via direct SQL
             IQueryable<dynamic> QueryInSql = this.client.CreateDocumentQuery<dynamic>(
                     UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
-                    "SELECT * FROM form4",
+                    "SELECT * FROM form4 ",
                     queryOptions);
 
             Console.WriteLine("Running direct SQL query...");
@@ -110,9 +110,21 @@ namespace cosmosdb
                 {
                     json_record = json_record.Replace("'", "''");
                 }
+                if (json_record.Contains("\\\" "))
+                {
+                    json_record = json_record.Replace("\\\" ", " ");
+                }
+                if (json_record.Contains("\\\","))
+                {
+                    json_record = json_record.Replace("\\\",", ",");
+                }
                 if (json_record.Contains("\\\""))
                 {
-                    json_record = json_record.Replace("\\\"", "\"");
+                    json_record = json_record.Replace("\\\"", " ");
+                }
+                if (json_record.Contains("\\"))
+                {
+                    json_record = json_record.Replace("\\", "");
                 }
                 if (json_record.Contains("etag\":\"\""))
                 {
@@ -123,22 +135,30 @@ namespace cosmosdb
                         if (json_record.Contains(":\"}"))
                         {
                             json_record = json_record.Replace(":\"}", ":\"\"}");
-                            if (json_record.Contains("\"group\""))
-                            {
-                                json_record = json_record.Replace("\"group\"", "group");
-                            }
+                            
                         }
                     }
                 }
-                json_result += json_record+'\n';
+                if (json_record.Contains("PA,\""))
+                {
+                    json_record = json_record.Replace("PA,\"", "PA\",\"");
+                }
+                if (json_record.Contains("DE,\""))
+                {
+                    json_record = json_record.Replace("DE,\"", "DE\",\"");
+                }
+                json_result = json_result + json_record+"\r";
                 //Console.WriteLine(json_record);
-                count++;
-                if (count%100 == 0)
+                //Console.WriteLine(json_result);
+                if (count == 1000)
                 {
                     string newFilepath = string.Format(path, page);
                     GenerateText(json_result, newFilepath);
                     page++;
+                    json_result = string.Empty;
+                    count = 1;
                 }
+                count++;
             }
         }
         private static void CreateFile(string path)
@@ -149,24 +169,24 @@ namespace cosmosdb
                 Console.WriteLine("Createfile .." + newFilepath);
             }
         }
-        private static void GenerateText(string data, string path)
+        private static void GenerateText(String data, string path)
         {
             if (!File.Exists(path))
             {
                 // Create a file to write to.
                 using (StreamWriter sw = File.CreateText(path))
                 {
-                    sw.WriteLine(data);
+                    sw.Write(data);
                 }
             }
-            if (File.Exists(path))
-            {
-                // Create a file to write to.
-                using (StreamWriter sw = File.AppendText(path))
-                {
-                    sw.WriteLine(data);
-                }
-            }
+            //if (File.Exists(path))
+            //{
+            //    // Create a file to write to.
+            //    using (StreamWriter sw = File.AppendText(path))
+            //    {
+            //        sw.Write(data);
+            //    }
+            //}
 
             // This text is always added, making the file longer over time
             // if it is not deleted.
