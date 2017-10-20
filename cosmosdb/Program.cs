@@ -147,13 +147,22 @@ namespace cosmosdb
                 {
                     json_record = json_record.Replace("DE,\"", "DE\",\"");
                 }
+                if (json_record.Contains("AG,\""))
+                {
+                    json_record = json_record.Replace("AG,\"", "AG\",\"");
+                }
+                if (json_record.Contains("AG },\""))
+                {
+                    json_record = json_record.Replace("AG },\"", "AG\"},\"");
+                }
                 json_result = json_result + json_record+"\r";
                 //Console.WriteLine(json_record);
                 //Console.WriteLine(json_result);
-                if (count == 1000)
+                if (count == 4000)
                 {
                     string newFilepath = string.Format(path, page);
                     GenerateText(json_result, newFilepath);
+                    Console.WriteLine("Created file ...{0} ({1})" ,newFilepath,(count*page));
                     page++;
                     json_result = string.Empty;
                     count = 1;
