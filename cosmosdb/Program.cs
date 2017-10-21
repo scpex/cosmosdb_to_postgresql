@@ -21,9 +21,9 @@ namespace cosmosdb
         static int count = 1;
         static string pagestr = Convert.ToString(page);
         // windows os
-        string path = @"C:\code\cosmosdb_to_postgresql\doc{0}.csv";
+        //string path = @"C:\code\cosmosdb_to_postgresql\doc{0}.csv";
         // linux os
-        //string path = @"/home/scpex/code/insert{0}.sh";
+        string path = @"/home/equityinsight/Documents/form4/doc{0}.json";
         static void Main(string[] args)
         {
             // ADD THIS PART TO YOUR CODE
@@ -158,7 +158,7 @@ namespace cosmosdb
                 json_result = json_result + json_record+"\r";
                 //Console.WriteLine(json_record);
                 //Console.WriteLine(json_result);
-                if (count == 4000)
+                if (count == 5000)
                 {
                     string newFilepath = string.Format(path, page);
                     GenerateText(json_result, newFilepath);
