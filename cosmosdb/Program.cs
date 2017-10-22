@@ -21,7 +21,7 @@ namespace cosmosdb
         static int count = 1;
         static string pagestr = Convert.ToString(page);
         // windows os
-        //string path = @"C:\code\cosmosdb_to_postgresql\doc{0}.csv";
+        //string path = @"C:\code\cosmosdb_to_postgresql\form4\doc{0}.json";
         // linux os
         string path = @"/home/equityinsight/Documents/form4/doc{0}.json";
         static void Main(string[] args)
@@ -98,7 +98,8 @@ namespace cosmosdb
             // Now execute the same query via direct SQL
             IQueryable<dynamic> QueryInSql = this.client.CreateDocumentQuery<dynamic>(
                     UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
-                    "SELECT * FROM form4 ",
+                    "SELECT top 200000 * from form4 ",
+                    //"SELECT top 200000 * FROM form4 order by form4.Body.ownershipDocument.issuer.issuerCik asc ",
                     queryOptions);
 
             Console.WriteLine("Running direct SQL query...");
@@ -106,59 +107,23 @@ namespace cosmosdb
             foreach (var doc in QueryInSql)
             {
                 var json_record = JsonConvert.SerializeObject(doc, Formatting.None);
-                if (json_record.Contains("'"))
-                {
-                    json_record = json_record.Replace("'", "''");
-                }
-                if (json_record.Contains("\\\" "))
-                {
-                    json_record = json_record.Replace("\\\" ", " ");
-                }
-                if (json_record.Contains("\\\","))
-                {
-                    json_record = json_record.Replace("\\\",", ",");
-                }
                 if (json_record.Contains("\\\""))
                 {
-                    json_record = json_record.Replace("\\\"", " ");
+                    json_record = json_record.Replace("\\\"", "");
                 }
-                if (json_record.Contains("\\"))
+                if (json_record.Contains("\\\\"))
                 {
-                    json_record = json_record.Replace("\\", "");
+                    json_record = json_record.Replace("\\\\", "");
                 }
-                if (json_record.Contains("etag\":\"\""))
+                if (json_record.Contains("\\,\""))
                 {
-                    json_record = json_record.Replace("\"\"", "\"");
-                    if (json_record.Contains("\":\","))
-                    {
-                        json_record = json_record.Replace("\":\",", "\":\"\",");
-                        if (json_record.Contains(":\"}"))
-                        {
-                            json_record = json_record.Replace(":\"}", ":\"\"}");
-                            
-                        }
-                    }
+                    json_record = json_record.Replace("\\,\"", "\",\"");
                 }
-                if (json_record.Contains("PA,\""))
-                {
-                    json_record = json_record.Replace("PA,\"", "PA\",\"");
-                }
-                if (json_record.Contains("DE,\""))
-                {
-                    json_record = json_record.Replace("DE,\"", "DE\",\"");
-                }
-                if (json_record.Contains("AG,\""))
-                {
-                    json_record = json_record.Replace("AG,\"", "AG\",\"");
-                }
-                if (json_record.Contains("AG },\""))
-                {
-                    json_record = json_record.Replace("AG },\"", "AG\"},\"");
-                }
+
                 json_result = json_result + json_record+"\r";
                 //Console.WriteLine(json_record);
                 //Console.WriteLine(json_result);
-                if (count == 5000)
+                if (count == 4000)
                 {
                     string newFilepath = string.Format(path, page);
                     GenerateText(json_result, newFilepath);
