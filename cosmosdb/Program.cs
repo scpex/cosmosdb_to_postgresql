@@ -119,6 +119,14 @@ namespace cosmosdb
                 {
                     json_record = json_record.Replace("\\,\"", "\",\"");
                 }
+                if (json_record.Contains("\\,\""))
+                {
+                    json_record = json_record.Replace("\\,\"", "\",\"");
+                }
+                if (json_record.Contains("\\},\"r"))
+                {
+                    json_record = json_record.Replace("\\},\"r", "\"},\"r");
+                }
 
                 json_result = json_result + json_record+"\r";
                 //Console.WriteLine(json_record);
