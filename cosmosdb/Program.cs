@@ -98,7 +98,7 @@ namespace cosmosdb
             // Now execute the same query via direct SQL
             IQueryable<dynamic> QueryInSql = this.client.CreateDocumentQuery<dynamic>(
                     UriFactory.CreateDocumentCollectionUri(databaseName, collectionName),
-                    "SELECT top 200000 * from form4 ",
+                    "SELECT * from form4 ",
                     //"SELECT top 200000 * FROM form4 order by form4.Body.ownershipDocument.issuer.issuerCik asc ",
                     queryOptions);
 
@@ -127,6 +127,11 @@ namespace cosmosdb
                 {
                     json_record = json_record.Replace("\\},\"r", "\"},\"r");
                 }
+		if (json_record.Contains("\\t"))
+                {
+                    json_record = json_record.Replace("\\t", " ");
+                }
+
 
                 json_result = json_result + json_record+"\r";
                 //Console.WriteLine(json_record);
